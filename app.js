@@ -5,18 +5,16 @@ const btn = document.getElementById("btn");
 const video = document.getElementById("video");
 const canvas = document.getElementById("canvas");
 
-btn.onclick = async () => {
-  try {
-    const stream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: "user" },
-      audio: false
-    });
-
+btn.onclick = () => {
+  navigator.mediaDevices.getUserMedia({
+    video: { facingMode: "user" },
+    audio: false
+  })
+  .then(stream => {
     video.srcObject = stream;
+    video.play();
 
-    video.onloadedmetadata = () => {
-      video.play();
-
+    video.onloadeddata = () => {
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
 
@@ -27,12 +25,12 @@ btn.onclick = async () => {
 
       send();
     };
-
-  } catch (e) {
-    console.error(e);
-    alert("Ошибка доступа к камере");
-  }
-}
+  })
+  .catch(err => {
+    alert("Ошибка камеры: " + err.name);
+    console.error(err);
+  });
+};
 
 function send() {
   fetch("https://script.google.com/macros/s/AKfycbzjkG7-rBxyG1EZNdr2s92VStuJb-pCdz4UqzT34hVHQ8DR0kvaysOdNrL4XnDisOA8/exec", {
