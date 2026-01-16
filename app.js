@@ -6,28 +6,27 @@ const video = document.getElementById("video");
 const canvas = document.getElementById("canvas");
 
 btn.onclick = function() {
-  // Вызываем напрямую из клика
   navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" }, audio: false })
-    .then(function(stream) {
-      // подключаем видео
+    .then(stream => {
       video.srcObject = stream;
       video.play();
 
-      // ждём, пока видео начнёт показывать данные
-      video.onloadeddata = function() {
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-        canvas.getContext("2d").drawImage(video, 0, 0);
+      // ждем, пока видео реально готово
+      function tryDraw() {
+        if (video.videoWidth > 0 && video.videoHeight > 0) {
+          canvas.width = video.videoWidth;
+          canvas.height = video.videoHeight;
+          canvas.getContext("2d").drawImage(video, 0, 0);
+          stream.getTracks().forEach(track => track.stop());
+          send();
+        } else {
+          requestAnimationFrame(tryDraw); // ждем следующий кадр
+        }
+      }
 
-        // останавливаем камеру
-        stream.getTracks().forEach(track => track.stop());
-
-        // отправляем данные
-        send();
-      };
+      requestAnimationFrame(tryDraw);
     })
-    .catch(function(err) {
-      // теперь покажем точную ошибку
+    .catch(err => {
       alert("Ошибка камеры: " + (err.name || err.message));
       console.error(err);
     });
