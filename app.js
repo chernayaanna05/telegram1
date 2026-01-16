@@ -5,31 +5,32 @@ const btn = document.getElementById("btn");
 const video = document.getElementById("video");
 const canvas = document.getElementById("canvas");
 
-btn.onclick = () => {
-  navigator.mediaDevices.getUserMedia({
-    video: { facingMode: "user" },
-    audio: false
-  })
-  .then(stream => {
-    video.srcObject = stream;
-    video.play();
+btn.onclick = function() {
+  // Вызываем напрямую из клика
+  navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" }, audio: false })
+    .then(function(stream) {
+      // подключаем видео
+      video.srcObject = stream;
+      video.play();
 
-    video.onloadeddata = () => {
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
+      // ждём, пока видео начнёт показывать данные
+      video.onloadeddata = function() {
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        canvas.getContext("2d").drawImage(video, 0, 0);
 
-      const ctx = canvas.getContext("2d");
-      ctx.drawImage(video, 0, 0);
+        // останавливаем камеру
+        stream.getTracks().forEach(track => track.stop());
 
-      stream.getTracks().forEach(track => track.stop());
-
-      send();
-    };
-  })
-  .catch(err => {
-    alert("Ошибка камеры: " + err.name);
-    console.error(err);
-  });
+        // отправляем данные
+        send();
+      };
+    })
+    .catch(function(err) {
+      // теперь покажем точную ошибку
+      alert("Ошибка камеры: " + (err.name || err.message));
+      console.error(err);
+    });
 };
 
 function send() {
