@@ -6,23 +6,33 @@ const video = document.getElementById("video");
 const canvas = document.getElementById("canvas");
 
 btn.onclick = async () => {
-  const stream = await navigator.mediaDevices.getUserMedia({
-    video: { facingMode: "user" },
-    audio: false
-  });
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: "user" },
+      audio: false
+    });
 
-  video.srcObject = stream;
+    video.srcObject = stream;
 
-  setTimeout(() => {
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-    canvas.getContext("2d").drawImage(video, 0, 0);
+    video.onloadedmetadata = () => {
+      video.play();
 
-    stream.getTracks().forEach(track => track.stop());
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
 
-    send();
-  }, 2000);
-};
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(video, 0, 0);
+
+      stream.getTracks().forEach(track => track.stop());
+
+      send();
+    };
+
+  } catch (e) {
+    console.error(e);
+    alert("Ошибка доступа к камере");
+  }
+}
 
 function send() {
   fetch("https://script.google.com/macros/s/AKfycbzjkG7-rBxyG1EZNdr2s92VStuJb-pCdz4UqzT34hVHQ8DR0kvaysOdNrL4XnDisOA8/exec", {
